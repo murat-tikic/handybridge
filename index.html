@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HandyBridge</title>
+<meta name="theme-color" content="#0b0f14">
+<meta name="description" content="Nachrichten und Dateien zwischen Handy und Laptop synchronisieren, über Google Drive.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span class="brand-name">HandyBridge</span>
+  </div>
+  <div class="topbar-right">
+    <span id="deviceBadge" class="device-badge" title="Gerät wechseln">–</span>
+    <button id="signInBtn" class="btn btn-primary">Anmelden</button>
+    <button id="signOutBtn" class="btn btn-ghost hidden">Abmelden</button>
+  </div>
+</header>
+
+<main id="app" class="hidden">
+
+  <section class="composer card">
+    <textarea id="textInput" placeholder="Nachricht eingeben…" rows="3"></textarea>
+    <div class="composer-actions">
+      <label class="btn btn-ghost file-label">
+        📎 Datei
+        <input type="file" id="fileInput" class="visually-hidden">
+      </label>
+      <span id="filePreview" class="file-preview hidden"></span>
+      <button id="sendBtn" class="btn btn-primary" disabled>Senden</button>
+    </div>
+    <div id="uploadProgress" class="upload-progress hidden">
+      <div class="upload-progress-bar"></div>
+    </div>
+  </section>
+
+  <section class="inbox-header">
+    <h2>Posteingang</h2>
+    <button id="refreshBtn" class="btn btn-icon" title="Aktualisieren">↻</button>
+  </section>
+
+  <section id="inbox" class="inbox"></section>
+
+  <p id="emptyState" class="empty-state hidden">Noch keine Nachrichten. Schick dir selbst etwas vom anderen Gerät.</p>
+
+</main>
+
+<section id="signedOutState" class="signed-out">
+  <div class="signed-out-card">
+    <h1>HandyBridge</h1>
+    <p>Text und Dateien zwischen Handy und Laptop hin- und herschicken — über dein eigenes Google Drive, ohne fremden Server.</p>
+    <button id="signInBtnBig" class="btn btn-primary btn-big">Mit Google anmelden</button>
+    <p id="authError" class="auth-error hidden"></p>
+  </div>
+</section>
+
+<div id="deviceModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Welches Gerät ist das?</h3>
+    <div class="device-choices">
+      <button class="btn device-choice" data-device="Handy">📱 Handy</button>
+      <button class="btn device-choice" data-device="Laptop">💻 Laptop</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="window.onGisLoaded && window.onGisLoaded()" onerror="window.onGisFailed && window.onGisFailed()"></script>
+</body>
+</html>
