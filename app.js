@@ -16,6 +16,8 @@ let tokenExpiresAt = 0;
 let folderId = null;
 let pollTimer = null;
 let messages = [];
+let lastRenderedIds = "";
+const textCache = new Map(); // fileId -> Textinhalt, verhindert Refetch/Flackern bei jedem Poll
 
 const $ = (id) => document.getElementById(id);
 
@@ -240,6 +242,9 @@ function formatTime(iso) {
 async function refreshInbox() {
   const files = await listMessages();
   messages = files;
+  const ids = files.map((f) => f.id).join(",");
+  if (ids === lastRenderedIds) return; // Liste unverändert -> kein Rebuild, kein Flackern
+  lastRenderedIds = ids;
   render();
 }
 
@@ -269,9 +274,16 @@ function render() {
     if (kind === "text") {
       const textEl = document.createElement("div");
       textEl.className = "msg-text";
-      textEl.textContent = "…";
+      if (textCache.has(m.id)) {
+        textEl.textContent = textCache.get(m.id);
+      } else {
+        textEl.textContent = "…";
+        fetchMedia(m.id).then((blob) => blob.text()).then((t) => {
+          textCache.set(m.id, t);
+          textEl.textContent = t;
+        });
+      }
       body.appendChild(textEl);
-      fetchMedia(m.id).then((blob) => blob.text()).then((t) => { textEl.textContent = t; });
     } else {
       const nameEl = document.createElement("div");
       nameEl.className = "msg-filename";
@@ -300,8 +312,8 @@ function render() {
       copyBtn.onclick = async () => {
         markRead(m.id);
         render();
-        const blob = await fetchMedia(m.id);
-        await navigator.clipboard.writeText(await blob.text());
+        const text = textCache.has(m.id) ? textCache.get(m.id) : await (await fetchMedia(m.id)).text();
+        await navigator.clipboard.writeText(text);
         toast("In Zwischenablage kopiert");
       };
       actions.appendChild(copyBtn);
