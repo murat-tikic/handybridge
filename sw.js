@@ -1,6 +1,8 @@
-// App-Shell-Cache fürs Offline-Öffnen der UI. Drive-API-Aufrufe (cross-origin) werden bewusst
-// NICHT gecacht -- Daten müssen live sein, nur die statische Oberfläche soll sofort laden.
-const CACHE = "handybridge-v1";
+// App-Shell-Cache fürs schnelle/offline Öffnen der UI. Network-first: bei Code-Updates (neuer
+// Push) soll die frische Version ankommen, ohne dass die Cache-Versionsnummer manuell hochgezählt
+// werden muss -- der Cache ist nur ein Fallback für offline/langsames Netz.
+// Drive-API-Aufrufe (cross-origin) werden bewusst nicht angefasst -- Daten müssen live sein.
+const CACHE = "handybridge-v2";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -19,6 +21,12 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return; // Drive/GIS-Requests unangetastet lassen
   e.respondWith(
-    caches.match(e.request).then((cached) => cached || fetch(e.request))
+    fetch(e.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
