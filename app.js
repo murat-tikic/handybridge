@@ -348,18 +348,22 @@ function render() {
 
 /* ---------- Polling ---------- */
 
+function isComposing() {
+  return document.activeElement === $("textInput");
+}
+
 function startPolling() {
   clearInterval(pollTimer);
   pollTimer = setInterval(() => {
-    if (document.visibilityState === "visible") refreshInbox().catch(() => {});
+    if (document.visibilityState === "visible" && !isComposing()) refreshInbox().catch(() => {});
   }, POLL_MS);
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && accessToken) refreshInbox().catch(() => {});
+  if (document.visibilityState === "visible" && accessToken && !isComposing()) refreshInbox().catch(() => {});
 });
 window.addEventListener("focus", () => {
-  if (accessToken) refreshInbox().catch(() => {});
+  if (accessToken && !isComposing()) refreshInbox().catch(() => {});
 });
 
 /* ---------- Compose ---------- */
@@ -372,6 +376,9 @@ function updateSendEnabled() {
 
 function wireCompose() {
   $("textInput").addEventListener("input", updateSendEnabled);
+  $("textInput").addEventListener("blur", () => {
+    if (accessToken) refreshInbox().catch(() => {});
+  });
 
   $("fileInput").addEventListener("change", () => {
     pendingFile = $("fileInput").files[0] || null;
