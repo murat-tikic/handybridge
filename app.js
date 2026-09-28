@@ -469,6 +469,13 @@ window.addEventListener("DOMContentLoaded", () => {
   wireCompose();
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // Browser drosseln automatische Update-Checks auf ~1x/24h. Explizites update()
+      // umgeht das, damit neue Deploys nicht erst einen Tag lang auf sich warten lassen.
+      reg.update().catch(() => {});
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") reg.update().catch(() => {});
+      });
+    }).catch(() => {});
   }
 });
